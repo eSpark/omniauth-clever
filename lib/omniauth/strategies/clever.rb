@@ -61,7 +61,7 @@ module OmniAuth
         # compatibility with other API providers, we request that info and merge it in.
         @raw_info ||= begin
                         account_data = access_token.get('/v3.0/me').parsed
-                        profile_data = access_token.get("/v3.0/users/#{uid}").parsed
+                        profile_data = access_token.get("/v3.0/users/#{account_data["data"]["id"]}").parsed
                         account_data.merge("data" => profile_data["data"].merge(account_data["data"]))
                       end
       end
