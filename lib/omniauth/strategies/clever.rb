@@ -42,10 +42,12 @@ module OmniAuth
         end
       end
 
-      uid{ raw_info['data']['id'] }
+      uid { raw_info['data']['id'] }
 
       info do
-        { :user_type => raw_info['type'] }.merge! raw_info['data']
+        {
+          :user_type => raw_info['type']
+        }.merge! raw_info['data']
       end
 
       extra do
@@ -55,7 +57,13 @@ module OmniAuth
       end
 
       def raw_info
-        @raw_info ||= access_token.get('/me').parsed
+        # As of January 1, 2023, Clever no longer returns user info with the /me call. For
+        # compatibility with other API providers, we request that info and merge it in.
+        @raw_info ||= begin
+                        account_data = access_token.get('/v3.0/me').parsed
+                        profile_data = access_token.get("/v3.0/users/#{account_data["data"]["id"]}").parsed
+                        account_data.merge("data" => profile_data["data"].merge(account_data["data"]))
+                      end
       end
 
       # Fix unknown redirect uri bug by NOT appending the query string to the callback url.
